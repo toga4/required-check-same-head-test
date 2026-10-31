@@ -1,0 +1,27 @@
+name: Pull Request
+
+on:
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # base が b の PR だけ 60 秒待ってから失敗する。
+  pull-request:
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          echo "base_ref=$BASE_REF"
+          if [ "$BASE_REF" = "b" ]; then sleep 60; exit 1; fi
+
+  status-check-pull-request:
+    runs-on: ubuntu-latest
+    if: always() && (contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled'))
+    needs:
+      - pull-request
+    steps:
+      - run: exit 1
