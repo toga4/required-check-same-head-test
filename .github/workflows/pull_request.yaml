@@ -2,6 +2,7 @@ name: Pull Request
 
 on:
   pull_request:
+    branches-ignore: [c]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -18,13 +19,10 @@ jobs:
           echo "base_ref=$BASE_REF"
           if [ "$BASE_REF" = "b" ]; then sleep 60; exit 1; fi
 
-  # base が c の PR だけ、チェック名を status-check-pull-request-c にする。
   status-check-pull-request:
-    name: ${{ github.base_ref == 'c' && 'status-check-pull-request-c' || 'status-check-pull-request' }}
     runs-on: ubuntu-latest
-    if: always()
+    if: always() && (contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled'))
     needs:
       - pull-request
     steps:
-      - if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
-        run: exit 1
+      - run: exit 1
