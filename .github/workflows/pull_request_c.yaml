@@ -1,0 +1,23 @@
+name: Pull Request
+
+on:
+  pull_request:
+    branches: [c]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pull-request:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "base_ref=c"
+
+  status-check-pull-request-c:
+    runs-on: ubuntu-latest
+    if: always() && (contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled'))
+    needs:
+      - pull-request
+    steps:
+      - run: exit 1
