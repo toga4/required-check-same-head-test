@@ -22,8 +22,9 @@ jobs:
   status-check-pull-request:
     name: ${{ github.base_ref == 'c' && 'status-check-pull-request-c' || 'status-check-pull-request' }}
     runs-on: ubuntu-latest
-    if: always() && (contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled'))
+    if: always()
     needs:
       - pull-request
     steps:
-      - run: exit 1
+      - if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+        run: exit 1
